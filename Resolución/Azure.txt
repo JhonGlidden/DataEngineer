@@ -1,0 +1,85 @@
+El ejemplo es para la extracción de datos de PDFs e imágenes, especialmente en procesos como el reconocimiento caracteres (OCR) para imágenes, el cual he trabajdo en mi última experiencia.
+A continuación describo los pasos para el procedimiento solicitado en bases a mi experiencia. 
+
+##################################################################################################################################################################
+####################################################### Pregunta 5 ###############################################################################################
+
+Los pasos que recomiendo seguir en base a mi experiencia son:
+
+   1 Definir las conexiones de datos:
+        Fuente de datos: Azure Blob Storage (donde se almacenan los PDFs e imágenes).
+        Destino: Azure SQL Database (donde se almacenarán los datos extraídos).
+
+   2 Crear conjuntos de datos:
+        Fuente: Conjunto de datos basado en Azure Blob Storage.
+        Destino: Conjunto de datos basado en Azure SQL Database.
+
+   3 Diseño del Pipeline:
+   	a. Actividad de extracción de datos de PDF:
+   		- Utilizamos Azure Cognitive Services  para extraer el texto de los PDFs.
+    		- Configuramos la actividad para que tome los PDFs desde Azure Blob Storage y pase el contenido a Text Analytics.
+
+    	b. Actividades de OCR para imágenes:
+    		- Al igual que con los PDFs, utiliza Azure Cognitive Services, pero esta vez utiliza el servicio de Computer Vision, que tiene capacidades de OCR.
+    		- Configura la actividad para que tome imágenes del Blob Storage y pase las imágenes al servicio de Computer Vision.
+
+    	c. Actividades de transformación:
+    		- Adicionalmente, si el texto extraído de los PDFs o imágenes necesita limpieza, filtrado, o alguna transformación específica.
+    		- Puede utilizar Data Flows de Azure Data Factory para estas transformaciones.
+
+    	d. Actividad de carga:
+    		- Carga el texto extraído y transformado en Azure SQL Database.
+
+   4 Monitoreo y gestión de errores:
+        Configurar alertas para ser notificado en caso de errores.
+        Define estrategias para manejar errores, por ejemplo, reintentos automáticos.
+
+   5 Programación y activación:
+        Si los nuevos PDFs e imágenes se añaden regularmente al Blob Storage, configura un disparador para que el pipeline se ejecute automáticamente cuando se detecten nuevos archivos.
+
+    Consideraciones adicionales:
+        Costo: Azure Cognitive Services cobra por transacción hay que asegurarse de entender los costos asociados antes de configurar el pipeline para ejecutarse a gran escala.
+        Tiempo de procesamiento: La extracción de texto y el OCR pueden llegar a ser operaciones intensivas, dependiendo de los documentos grandes o imágenes de alta resolución.
+        Calidad del OCR: No todos los OCRs son 100% precisos, especialmente si las imágenes tienen texto borroso, en ángulos o en fuentes difíciles de reconocer. 
+
+
+##################################################################################################################################################################
+####################################################### Pregunta 6 ###############################################################################################
+
+
+Para crear un flujo en Azure Data Factory que procese archivos Excel, extraiga texto de PDFs e imágenes utilizando APIs, y finalmente cargamos estos datos en una base de datos de SQL Server
+requiere múltiples pasos, presento un diseño detallado:
+
+   1 Definición de conexiones:
+        Fuente de datos: Azure Blob Storage (donde se almacenan los archivos Excel, PDFs e imágenes).
+        Destino: SQL Server Database (donde se cargarán los datos procesados).
+
+   2 Crear conjuntos de datos:
+        Conjunto de datos de fuente: Basado en Azure Blob Storage, apuntando al contenedor donde se almacenan los archivos Excel, PDFs e imágenes.
+        Conjunto de datos de destino: Basado en SQL Server, apuntando a la tabla específica donde deseas cargar los datos.
+
+    2 Diseño del pipeline:
+
+    	a. Actividad de copia:
+    		- Esta actividad copiará los archivos Excel desde Azure Blob Storage.
+    		- El servicio integrado de Azure Data Factory puede leer directamente archivos Excel y transformarlos en un formato tabular.
+
+   	b. Actividad de extracción de datos de PDF:
+    		- Utilizamos una llamada API a un servicio que pueda extraer texto de PDFs, como Azure Cognitive Services.
+
+    	c. Actividades de transformación:
+    		- Usamos Data Flows de Azure Data Factory para limpiar y transformar los datos. Por ejemplo, para manejar celdas vacías o datos mal formateados en los archivos Excel, o corregir posibles errores del OCR.
+    		- Separamos y estructuramos correctamente los datos extraídos para que coincidan con el esquema de la tabla de destino.
+
+    	d. Actividad de carga:
+    		- Una vez transformados, cargar los datos en la tabla de SQL Server usando la actividad de copia.
+
+    4 Manejo de errores:
+        Hay que configurar alertas y monitoreo para ser notificado sobre errores.
+        Para errores de formato o calidad en los archivos Excel, se considera guardar registros problemáticos en una tabla separada ("tabla de rechazo") para su revisión.
+
+    5 Programación y disparadores:
+        Si existen nuevos archivos de Excel, PDFs e imágenes regularmente, configura un disparador basado en eventos que inicie el pipeline cuando se detecten nuevos archivos en el Blob Storage.
+
+    Consideraciones adicionales:
+        Rendimiento: La extracción de texto y el OCR pueden ser operaciones intensivas. Monitorizamos el rendimiento y consideramos escalar o ajustar recursos según sea necesario.
